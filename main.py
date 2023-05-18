@@ -1,4 +1,5 @@
 import pyrogram
+from pyrogram import filters
 
 # API ID, bot token, and API hash
 api_id = 14091414
@@ -14,7 +15,7 @@ bot = pyrogram.Client(
 )
 
 # Add a command handler for /ban
-@bot.on_message(command("ban"))
+@bot.on_message(filters.command("ban"))
 async def ban(message):
     # Check if the bot is an admin
     if not bot.is_admin(message.chat.id):
