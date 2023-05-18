@@ -9,9 +9,9 @@ bot_token = '5615528335:AAHOlk2j2TE5CWOv24mxBwpBMAx2ui3Zv1k'
 app = Client("my_bot", api_id=api_id, api_hash=api_hash, bot_token=bot_token)
 
 # Check if the user is an admin and has rights to ban users
-def check_admin_rights(user):
-    if not user.can_restrict_members:
-        raise Exception("You are not allowed to ban users.")
+def check_ban_rights(user, chat):
+    if not user.is_admin(chat):
+        raise Exception("You are not allowed to ban users in this chat.")
 
 # Check if the bot is an admin in the group
 def check_bot_admin(chat_id):
@@ -24,7 +24,7 @@ def check_bot_admin(chat_id):
 async def ban_user(client, message):
     try:
         # Check if the user issuing the command has the right to ban users
-        check_admin_rights(message.from_user)
+        check_ban_rights(message.from_user, message.chat)
 
         # Check if the bot is an admin in the group
         check_bot_admin(message.chat.id)
