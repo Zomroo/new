@@ -15,62 +15,50 @@ bot = pyrogram.Client(
 )
 
 # Define the ban command
-@bot.on_message(filters.command(["ban", "dban", "tban"]) & ~filters.private)
+@bot.on_message(filters.command("ban"))
 async def ban_command(client, message):
-    user_id, reason = await extract_user_and_reason(message, sender_chat=True)
+    # Get the user ID of the user who sent the command
+    user_id = message.from_user.id
 
-    if not user_id:
-        return await message.reply_text("I can't find that user.")
-    if user_id == client.get_me().id:
-        return await message.reply_text("I can't ban myself, I can leave if you want.")
-    if user_id in SUDOERS:
-        return await message.reply_text("You want to ban an elevated user? RECONSIDER!")
-    if user_id in (await client.get_chat_administrators(message.chat.id)):
-        return await message.reply_text("I can't ban an admin. You know the rules, so do I.")
-
-    try:
-        mention = (await client.get_users(user_id)).mention
-    except IndexError:
-        mention = (
-            message.reply_to_message.sender_chat.title
-            if message.reply_to_message
-            else "Anon"
-        )
-
-    msg = (
-        f"**Banned User:** {mention}\n"
-        f"**Banned By:** {message.from_user.mention if message.from_user else 'Anon'}\n"
-    )
-
-    if message.command[0][0] == "d":
-        await message.reply_to_message.delete()
-
-    if message.command[0] == "tban":
-        split = reason.split(None, 1)
-        time_value = split[0]
-        temp_reason = split[1] if len(split) > 1 else ""
-        temp_ban = await time_converter(message, time_value)
-        msg += f"**Banned For:** {time_value}\n"
-
-        if temp_reason:
-            msg += f"**Reason:** {temp_reason}"
-
-        try:
-            if len(time_value[:-1]) < 3:
-                await message.chat.ban_member(user_id, until_date=temp_ban)
-                await message.reply_text(msg)
-            else:
-                await message.reply_text("You can't use more than 99.")
-        except AttributeError:
-            pass
+    # Check if the bot is an admin
+    chat_member = await client.get_chat_member(message.chat.id, "me")
+    if chat_member.status != "administrator":
+        # The bot is not an admin, so send an error message
+        await message.reply("I am not an admin in this chat.")
         return
 
-    if reason:
-        msg += f"**Reason:** {reason}"
+    # Check if the user who sent the command has ban rights
+    user_member = await client.get_chat_member(message.chat.id, user_id)
+    if user_member.status not in ("administrator", "creator"):
+        # The user does not have ban rights, so send an error message
+        await message.reply("You do not have permission to ban users.")
+        return
 
-    await message.chat.ban_member(user_id)
-    await message.reply_text(msg)
+    # Extract the user ID and reason from the message
+    user_id, reason = await extract_user_and_reason(message, sender_chat=True)
 
+    # Check if a valid user ID is extracted
+    if not user_id:
+        await message.reply("I can't find that user.")
+        return
+
+    # Check if the user is trying to ban the bot itself
+    if user_id == bot.get_me().id:
+        await message.reply("I can't ban myself, I can leave if you want.")
+        return
+
+    # Check if the user is trying to ban an admin
+    chat_admins = await client.get_chat_members(message.chat.id, filter="administrators")
+    admin_ids = [admin.user.id for admin in chat_admins]
+    if user_id in admin_ids:
+        await message.reply("I can't ban an admin.")
+        return
+
+    # Ban the user
+    await client.ban_chat_member(message.chat.id, user_id)
+
+    # Send a confirmation message
+    await message.reply(f"User {user_id} has been banned.")
 
 # Start the bot
 bot.run()
