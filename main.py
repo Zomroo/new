@@ -15,10 +15,10 @@ bot = pyrogram.Client(
 )
 
 # Add a command handler for /ban
-@bot.on_message(filters.command("ban"))
-async def ban(message):
+@bot.on_message(pyrogram.filters.command("ban"))
+async def ban(client, message):
     # Check if the bot is an admin
-    if not bot.is_admin(message.chat.id):
+    if not await client.get_chat_member(message.chat.id, "me").can_restrict_members:
         await message.reply("I don't have enough rights to ban users.")
         return
 
@@ -34,13 +34,10 @@ async def ban(message):
     username = message.text.split(" ")[1]
 
     # Ban the user
-    await bot.ban_chat_member(message.chat.id, username)
+    await bot.kick_chat_member(message.chat.id, username)
 
     # Delete the command
     await message.delete()
 
 # Start the bot
-bot.start()
-
-# Run the bot forever
-bot.run_forever()
+bot.run()
