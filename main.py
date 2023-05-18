@@ -37,7 +37,7 @@ async def ban_command(client, message):
         return
 
     # Ban the user
-    await client.kick_chat_member(message.chat.id, user_id)
+    await client.ban_chat_member(message.chat.id, user_id)
 
     # Send a confirmation message
     await message.reply(f"User {user_id} has been banned.")
