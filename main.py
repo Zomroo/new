@@ -1,6 +1,5 @@
 from pyrogram import Client, filters
-from pyrogram.raw import functions
-from pyrogram.raw.types import ChatAdminRights
+from pyrogram.types import ChatMember
 
 # Add your API ID and bot token here
 api_id = 14091414
@@ -12,11 +11,8 @@ app = Client("my_bot", api_id=api_id, api_hash=api_hash, bot_token=bot_token)
 
 # Check if the user is an admin and has rights to ban users
 async def check_ban_rights(user, chat):
-    admin_rights = await app.send(functions.channels.GetParticipant(
-        channel=chat.id,
-        participant=user.id
-    ))
-    if isinstance(admin_rights.participant, ChatAdminRights):
+    member = await app.get_chat_member(chat.id, user.id)
+    if member.status in ["administrator", "creator"]:
         return True
     else:
         return False
