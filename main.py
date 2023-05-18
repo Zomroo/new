@@ -17,11 +17,11 @@ bot = pyrogram.Client(
 # Add a command handler for /adminrights
 @bot.on_message(filters.command("adminrights"))
 async def adminrights(client, message):
-    # Get the chat members count
-    chat_members_count = await client.get_chat_members_count(message.chat.id)
+    # Get the chat member object for the bot
+    chat_member = await client.get_chat_member(message.chat.id, "me")
 
     # Check if the bot is an admin
-    if chat_members_count.admins > 0:
+    if chat_member.status == "administrator":
         # The bot is an admin
         await message.reply("I am an admin in this chat.")
     else:
