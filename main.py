@@ -1,59 +1,45 @@
-from pyrogram import Client, filters
-from pyrogram.types import ChatMember
+import pyrogram
 
-# Add your API ID and bot token here
+# API ID, bot token, and API hash
 api_id = 14091414
-api_hash = '1e26ebacf23466ed6144d29496aa5d5b'
-bot_token = '5615528335:AAHOlk2j2TE5CWOv24mxBwpBMAx2ui3Zv1k'
+bot_token = 1e26ebacf23466ed6144d29496aa5d5b
+api_hash = 5615528335:AAHOlk2j2TE5CWOv24mxBwpBMAx2ui3Zv1k
 
-# Create a Pyrogram client
-app = Client("my_bot", api_id=api_id, api_hash=api_hash, bot_token=bot_token)
+# Initialize Pyrogram
+bot = pyrogram.Client(
+    "my_bot",
+    api_id=api_id,
+    bot_token=bot_token,
+    api_hash=api_hash,
+)
 
-# Check if the user is an admin and has rights to ban users
-async def check_ban_rights(user, chat):
-    member = await app.get_chat_member(chat.id, user.id)
-    if member.status in ["administrator", "creator"]:
-        return True
-    else:
-        return False
+# Add a command handler for /ban
+@bot.on_message(command("ban"))
+async def ban(message):
+    # Check if the bot is an admin
+    if not bot.is_admin(message.chat.id):
+        await message.reply("I don't have enough rights to ban users.")
+        return
 
-# Check if the bot is an admin in the group
-def check_bot_admin(chat_id):
-    bot_member = app.get_chat_member(chat_id, "me")
-    if not bot_member.status == "administrator":
-        raise Exception("I don't have enough rights to perform this action.")
+    # Get the user who sent the command
+    user = message.from_user
 
-# Handle the /ban command
-@app.on_message(filters.command("ban") & filters.group)
-async def ban_user(client, message):
-    try:
-        # Check if the user issuing the command has the right to ban users
-        if await check_ban_rights(message.from_user, message.chat):
+    # Check if the user is an admin
+    if not user.is_admin:
+        await message.reply("You are not allowed to ban users.")
+        return
 
-            # Check if the bot is an admin in the group
-            check_bot_admin(message.chat.id)
+    # Get the username of the user to be banned
+    username = message.text.split(" ")[1]
 
-            # Check if the command has a reply message or a mentioned username
-            if message.reply_to_message:
-                user_id = message.reply_to_message.from_user.id
-            elif len(message.command) > 1:
-                user_id = message.command[1]
-            else:
-                await message.reply_text("Please reply to a message or provide a username to ban.")
-                return
+    # Ban the user
+    await bot.ban_chat_member(message.chat.id, username)
 
-            # Ban the user
-            await client.kick_chat_member(message.chat.id, user_id)
-            await message.reply_text("User has been banned.")
-            await message.delete()
-
-        else:
-            await message.reply_text("You are not allowed to ban users in this chat.")
-
-    except Exception as e:
-        await message.reply_text(str(e))
-
-# Add more command handlers for other functionalities...
+    # Delete the command
+    await message.delete()
 
 # Start the bot
-app.run()
+bot.start()
+
+# Run the bot forever
+bot.run_forever()
