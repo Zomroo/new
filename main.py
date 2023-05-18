@@ -2,8 +2,8 @@ import pyrogram
 
 # API ID, bot token, and API hash
 api_id = 14091414
-bot_token = 1e26ebacf23466ed6144d29496aa5d5b
-api_hash = 5615528335:AAHOlk2j2TE5CWOv24mxBwpBMAx2ui3Zv1k
+bot_token = '1e26ebacf23466ed6144d29496aa5d5b'
+api_hash = '5615528335:AAHOlk2j2TE5CWOv24mxBwpBMAx2ui3Zv1k'
 
 # Initialize Pyrogram
 bot = pyrogram.Client(
