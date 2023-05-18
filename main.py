@@ -14,36 +14,24 @@ bot = pyrogram.Client(
     api_hash=api_hash,
 )
 
-# Add a command handler for /ban
-@bot.on_message(filters.command("ban"))
-async def ban(client, message):
-    # Check if the bot is an admin
+# Add a command handler for /adminrights
+@bot.on_message(filters.command("adminrights"))
+async def adminrights(client, message):
+    # Get the chat member object for the bot
     chat_member = await client.get_chat_member(message.chat.id, "me")
-    if not chat_member.status == "administrator" or not chat_member.can_restrict_members:
-        await message.reply("I don't have enough rights to ban users.")
-        return
 
-    # Get the user who sent the command
-    user = message.from_user
+    # Check if the bot is an admin
+    if chat_member.status == "administrator":
+        # The bot is an admin
+        await message.reply("I am an admin in this chat.")
 
-    # Check if the user is an admin
-    if not user.is_admin:
-        await message.reply("You are not allowed to ban users.")
-        return
+        # List all the admin rights that the bot has
+        for right in chat_member.admin_rights:
+            await message.reply(right)
 
-    # Get the username of the user to be banned
-    username = message.text.split(" ")[1]
-
-    # Ban the user
-    try:
-        await bot.kick_chat_member(message.chat.id, username)
-        await message.reply("User has been banned.")
-    except pyrogram.errors.FloodWait as e:
-        # Handle the case when the bot is being rate-limited
-        await message.reply(f"Rate-limited. Try again in {e.x} seconds.")
-
-    # Delete the command
-    await message.delete()
+    else:
+        # The bot is not an admin
+        await message.reply("I am not an admin in this chat.")
 
 # Start the bot
 bot.run()
