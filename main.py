@@ -22,7 +22,7 @@ async def ban_command(client, message):
 
     # Check if the bot is an admin
     chat_member = await client.get_chat_member(message.chat.id, "me")
-    if chat_member.status != "administrator":
+    if chat_member.status not in ("administrator", "creator"):
         # The bot is not an admin, so send an error message
         await message.reply("I am not an admin in this chat.")
         return
