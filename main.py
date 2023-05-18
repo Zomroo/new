@@ -19,7 +19,7 @@ bot = pyrogram.Client(
 async def ban(client, message):
     # Check if the bot is an admin
     chat_member = await client.get_chat_member(message.chat.id, "me")
-    if not chat_member.status == "administrator":
+    if not chat_member.status == "administrator" or not chat_member.can_restrict_members:
         await message.reply("I don't have enough rights to ban users.")
         return
 
@@ -35,7 +35,12 @@ async def ban(client, message):
     username = message.text.split(" ")[1]
 
     # Ban the user
-    await bot.ban_chat_member(message.chat.id, username)
+    try:
+        await bot.kick_chat_member(message.chat.id, username)
+        await message.reply("User has been banned.")
+    except pyrogram.errors.FloodWait as e:
+        # Handle the case when the bot is being rate-limited
+        await message.reply(f"Rate-limited. Try again in {e.x} seconds.")
 
     # Delete the command
     await message.delete()
